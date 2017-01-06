@@ -6,7 +6,11 @@ public class Spawner : MonoBehaviour
 {
     #region vars
     public GameObject MetaBallPrefab;
-    public int MetaBallAmount = 100;
+    public int Amount = 100;
+    public float MinScale = 1.5f;
+    public Vector2 SquishXLimits = new Vector2(1f,2f);
+    public Vector2 SquishYLimits = new Vector2(2f, 0.5f);
+    public Vector2 RotationSpeedLimits = new Vector2(-45f, 45f);
     #endregion
     #region init
     private void Start()
@@ -15,7 +19,7 @@ public class Spawner : MonoBehaviour
         var worldEdgesMax = Camera.main.ViewportToWorldPoint(Vector3.one);
         var worldEdgesMin = Camera.main.ViewportToWorldPoint(Vector3.zero);
 
-        for (int i = 0; i < MetaBallAmount; i++)
+        for (int i = 0; i < Amount; i++)
         {
             //create metaball in random position
             var randomPos = new Vector3(Random.Range(worldEdgesMin.x, worldEdgesMax.x), Random.Range(worldEdgesMin.y, worldEdgesMax.y), 0);
@@ -27,13 +31,13 @@ public class Spawner : MonoBehaviour
 
             //randomize squishing and rotation
             var squish = ball.GetComponent<AutoSquishAndRotate>();
-            float size = 1.5f;
-            squish.MinSquishX = size + Random.Range(0, 1f);
-            squish.MaxSquishX = squish.MinSquishX + Random.Range(0f, 2f);
-            squish.MinSquishY = size + Random.Range(1, 2f);
-            squish.MaxSquishY = squish.MinSquishY + Random.Range(0, 0.5f);
 
-            squish.RotationSpeedAngle = Random.Range(-45, 45);
+            squish.MinSquishX = MinScale + Random.Range(0, SquishXLimits.x);
+            squish.MaxSquishX = squish.MinSquishX + Random.Range(0f, SquishXLimits.y);
+            squish.MinSquishY = MinScale + Random.Range(0, SquishYLimits.x);
+            squish.MaxSquishY = squish.MinSquishY + Random.Range(0, SquishYLimits.y);
+
+            squish.RotationSpeedAngle = Random.Range(RotationSpeedLimits.x, RotationSpeedLimits.y);
         }
     }
     #endregion

@@ -26,18 +26,18 @@ public class Spawner : MonoBehaviour
             var ball = Instantiate(MetaBallPrefab, randomPos, Quaternion.identity) as GameObject;
 
             //randomize movementspeed
-            var mover = ball.GetComponent<AutoMover>();
-            mover.MovementSpeed = Random.Range(0.1f, 0.5f);
+            var mover = ball.GetComponent<Mover>();
+            mover.movementSpeed = Random.Range(0.1f, 0.5f);
 
             //randomize squishing and rotation
-            var squish = ball.GetComponent<AutoSquishAndRotate>();
+            var squish = ball.GetComponent<SquishAndRotate>();
 
-            squish.MinSquishX = MinScale + Random.Range(0, SquishXLimits.x);
-            squish.MaxSquishX = squish.MinSquishX + Random.Range(0f, SquishXLimits.y);
-            squish.MinSquishY = MinScale + Random.Range(0, SquishYLimits.x);
-            squish.MaxSquishY = squish.MinSquishY + Random.Range(0, SquishYLimits.y);
+            squish.minSquishX = MinScale + Random.Range(0, SquishXLimits.x);
+            squish.maxSquishX = squish.minSquishX + Random.Range(0f, SquishXLimits.y);
+            squish.minSquishY = MinScale + Random.Range(0, SquishYLimits.x);
+            squish.maxSquishY = squish.minSquishY + Random.Range(0, SquishYLimits.y);
 
-            squish.RotationSpeedAngle = Random.Range(RotationSpeedLimits.x, RotationSpeedLimits.y);
+            squish.rotationSpeedAngle = Random.Range(RotationSpeedLimits.x, RotationSpeedLimits.y);
         }
     }
     #endregion

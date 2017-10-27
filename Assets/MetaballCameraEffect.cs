@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityStandardAssets.ImageEffects
 {
     [ExecuteInEditMode]
-    public class MetaballEffect : MonoBehaviour
+    public class MetaballCameraEffect : MonoBehaviour
     {
         /// Blur iterations - larger number means more blur.
         public int iterations = 3;
@@ -15,7 +15,6 @@ namespace UnityStandardAssets.ImageEffects
         public float blurSpread = 0.6f;
 
 
-        // --------------------------------------------------------
         // The blur iteration shader.
         // Basically it just takes 4 texture samples and averages them.
         // By applying it repeatedly and spreading out sample locations
@@ -24,9 +23,12 @@ namespace UnityStandardAssets.ImageEffects
         public Shader blurShader = null;
 
         static Material m_Material = null;
-        protected Material material {
-            get {
-                if (m_Material == null) {
+        protected Material material
+        {
+            get
+            {
+                if (m_Material == null)
+                {
                     m_Material = new Material(blurShader);
                     m_Material.hideFlags = HideFlags.DontSave;
                 }
@@ -34,89 +36,99 @@ namespace UnityStandardAssets.ImageEffects
             }
         }
 
-        public Material CutOutMaterial;
+        public Material cutOutMaterial;
+        public Camera bgCamera;
+
+        RenderTexture bgTargetTexture;
+
+        private void OnEnable()
+        {
+            bgTargetTexture = new RenderTexture(Screen.width, Screen.height, 24);
+            bgCamera.targetTexture = bgTargetTexture;
+        }
 
         protected void OnDisable()
         {
-            if ( m_Material )
+            if (m_Material)
             {
-                DestroyImmediate( m_Material );
+                DestroyImmediate(m_Material);
             }
-
         }
-
-        // --------------------------------------------------------
 
         protected void Start()
         {
             // Disable if we don't support image effects
-            if (!SystemInfo.supportsImageEffects) {
-                enabled = false;
-                return;
-            }
-            // Disable if the shader can't run on the users graphics card
-            if (!blurShader || !material.shader.isSupported) {
-                enabled = false;
-                return;
-            }
-
-            // Disable if the shader can't run on the users graphics card
-            if (!CutOutMaterial.shader.isSupported)
+            if (!SystemInfo.supportsImageEffects)
             {
                 enabled = false;
                 return;
             }
+            // Disable if the shader can't run on the users graphics card
+            if (!blurShader || !material.shader.isSupported)
+            {
+                enabled = false;
+                return;
+            }
+
+            // Disable if the shader can't run on the users graphics card
+            if (!cutOutMaterial.shader.isSupported)
+            {
+                enabled = false;
+                return;
+            }
+
         }
 
         // Performs one blur iteration.
-        public void FourTapCone (RenderTexture source, RenderTexture dest, int iteration)
+        public void FourTapCone(RenderTexture source, RenderTexture dest, int iteration)
         {
-            float off = 0.5f + iteration*blurSpread;
-            Graphics.BlitMultiTap (source, dest, material,
+            float off = 0.5f + iteration * blurSpread;
+            Graphics.BlitMultiTap(source, dest, material,
                                    new Vector2(-off, -off),
-                                   new Vector2(-off,  off),
-                                   new Vector2( off,  off),
-                                   new Vector2( off, -off)
+                                   new Vector2(-off, off),
+                                   new Vector2(off, off),
+                                   new Vector2(off, -off)
                 );
         }
 
         // Downsamples the texture to a quarter resolution.
-        private void DownSample4x (RenderTexture source, RenderTexture dest)
+        private void DownSample4x(RenderTexture source, RenderTexture dest)
         {
             float off = 1.0f;
-            Graphics.BlitMultiTap (source, dest, material,
+            Graphics.BlitMultiTap(source, dest, material,
                                    new Vector2(-off, -off),
-                                   new Vector2(-off,  off),
-                                   new Vector2( off,  off),
-                                   new Vector2( off, -off)
+                                   new Vector2(-off, off),
+                                   new Vector2(off, off),
+                                   new Vector2(off, -off)
                 );
         }
 
         // Called by the camera to apply the image effect
-        void OnRenderImage (RenderTexture source, RenderTexture destination) {
-            int rtW = source.width/4;
-            int rtH = source.height/4;
+        void OnRenderImage(RenderTexture source, RenderTexture destination)
+        {
+            int rtW = source.width / 4;
+            int rtH = source.height / 4;
             RenderTexture buffer = RenderTexture.GetTemporary(rtW, rtH, 0);
 
             // Copy source to the 4x4 smaller texture.
-            DownSample4x (source, buffer);
+            DownSample4x(source, buffer);
 
             // Blur the small texture
-            for(int i = 0; i < iterations; i++)
+            for (int i = 0; i < iterations; i++)
             {
                 RenderTexture buffer2 = RenderTexture.GetTemporary(rtW, rtH, 0);
-                FourTapCone (buffer, buffer2, i);
+                FourTapCone(buffer, buffer2, i);
                 RenderTexture.ReleaseTemporary(buffer);
                 buffer = buffer2;
             }
 
-            //apply blur shader
-            Graphics.Blit(buffer, destination);
+            //draw bg camera before metaball camera
+            Graphics.Blit(bgTargetTexture, destination);
+            Graphics.Blit(buffer, destination, cutOutMaterial);
 
-            //apply cutout shader
-            Graphics.Blit(buffer, CutOutMaterial);
 
             RenderTexture.ReleaseTemporary(buffer);
+
         }
     }
 }

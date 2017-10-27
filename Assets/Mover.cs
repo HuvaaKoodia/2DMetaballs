@@ -1,13 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class AutoMover : MonoBehaviour
+public class Mover : MonoBehaviour
 {
-    #region vars
-    private bool moving = false;
-    public float MovementSpeed = 3f;
+    #region variables
+    public float movementSpeed = 3f;
+
+    bool moving = false;
     #endregion
-    #region init
+    #region initialization
     IEnumerator Start()
     {
         //calculate world coordinates
@@ -23,7 +24,7 @@ public class AutoMover : MonoBehaviour
             //move transform
             while (moving)
             {
-                transform.position += movementDirection * MovementSpeed * Time.deltaTime;
+                transform.position += movementDirection * movementSpeed * Time.deltaTime;
                 yield return null;
             }
 
